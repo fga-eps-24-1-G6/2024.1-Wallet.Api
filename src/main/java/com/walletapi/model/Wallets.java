@@ -9,6 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @Builder
 public class Wallets {
 
@@ -16,9 +17,6 @@ public class Wallets {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Setter
     @Column(name = "name", nullable = false)
     private String name;
-
-
 }

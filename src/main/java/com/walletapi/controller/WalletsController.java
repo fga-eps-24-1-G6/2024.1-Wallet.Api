@@ -19,7 +19,7 @@ public class WalletsController {
 
     private final WalletsService walletsService;
 
-    @PostMapping(value = "/create")
+    @PostMapping("/create")
     public ResponseEntity<?> createWallet(@RequestBody final WalletsResponse data) {
         try {
             return ResponseEntity.ok(walletsService.createWallet(data.getName()));
@@ -27,13 +27,13 @@ public class WalletsController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionResponse(exception.getErrorCode(), exception.getMessage()));
         }
     }
-    @GetMapping("/get-wallets")
+    @GetMapping("/get")
     public ResponseEntity<List<WalletsResponse>> getAllWallets() {
         List<WalletsResponse> wallets = walletsService.getAllWallets();
         return ResponseEntity.ok(wallets);
     }
 
-    @GetMapping("/get-wallet/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<?> getWalletById(@PathVariable Integer id) {
         try {
             WalletsResponse wallet = walletsService.getWalletById(id);
@@ -44,7 +44,7 @@ public class WalletsController {
         }
     }
 
-    @PutMapping("/edit-wallet/{id}")
+    @PutMapping("/edit/{id}")
     public ResponseEntity<?> updateWallet(@PathVariable Integer id, @RequestBody WalletsResponse data) {
         try {
             WalletsResponse updatedWallet = walletsService.updateWallet(id, data.getName());
@@ -55,7 +55,7 @@ public class WalletsController {
         }
     }
 
-    @DeleteMapping("/delete-wallet/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteWallet(@PathVariable Integer id) {
         try {
             walletsService.deleteWallet(id);
