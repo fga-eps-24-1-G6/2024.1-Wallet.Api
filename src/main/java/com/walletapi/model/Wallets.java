@@ -9,10 +9,11 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Builder
 public class Wallets {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "name", nullable = false)

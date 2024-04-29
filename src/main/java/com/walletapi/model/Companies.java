@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 public class Companies {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "name")

@@ -16,7 +16,7 @@ import java.math.BigInteger;
 public class Stocks {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "ticker")
