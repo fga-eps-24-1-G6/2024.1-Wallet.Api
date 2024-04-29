@@ -16,6 +16,9 @@ public class Wallets {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Setter
     @Column(name = "name", nullable = false)
     private String name;
+
+
 }
