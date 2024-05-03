@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder
-public class WalletsResponse {
+public class WalletsDTO {
     private Integer id;
     private String name;
 }

@@ -10,10 +10,10 @@ import java.util.Date;
 @Getter
 @AllArgsConstructor
 @Builder
-public class TransactionsResponse {
+public class TransactionsDTO {
     private Integer id;
-    private WalletsDTO wallets;
-    private StocksDTO stocks;
+    private Integer walletId;
+    private String ticker;
     private BigDecimal price;
     private Date date;
     private Integer amount;

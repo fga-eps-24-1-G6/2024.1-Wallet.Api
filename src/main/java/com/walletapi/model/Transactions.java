@@ -1,6 +1,7 @@
 package com.walletapi.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,19 +14,18 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Builder
 public class Transactions {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "wallet_id", nullable = false)
-    private Wallets wallets;
+    @Column(name = "wallet_id", nullable = false)
+    private Integer walletId;
 
-    @ManyToOne
-    @JoinColumn(name = "stocks_id", nullable = false)
-    private Stocks stocks;
+    @Column(name = "ticker", nullable = false)
+    private String ticker;
 
     @Column(name = "price", nullable = false)
     private BigDecimal price;
