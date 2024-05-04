@@ -50,4 +50,24 @@ public class TransactionsService {
             throw new BadRequestNotFoundException(409, "Fail to create the transaction");
         }
     }
+
+    public TransactionsResponse getTransactionById(Integer id) {
+        Transactions transaction = transactionsRepository.findById(id)
+                .orElseThrow(() -> new BadRequestNotFoundException(404, "Lançamento não encontrado com o ID: " + id));
+
+        // getWalletById
+        WalletsDTO wallets = walletsService.getWalletById(transaction.getWalletId());
+        // getStocksByTicker
+        StocksDTO stocks = stocksService.getStocksByTicker(transaction.getTicker());
+
+        return TransactionsResponse.builder()
+                .id(transaction.getId())
+                .wallets(wallets)
+                .stocks(stocks)
+                .price(transaction.getPrice())
+                .date(transaction.getDate())
+                .amount(transaction.getAmount())
+                .operation(transaction.getOperation())
+                .build();
+    }
 }
