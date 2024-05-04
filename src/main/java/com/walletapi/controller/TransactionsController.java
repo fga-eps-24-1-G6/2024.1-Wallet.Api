@@ -47,4 +47,15 @@ public class TransactionsController {
                     .body(new ExceptionResponse(exception.getErrorCode(), exception.getMessage()));
         }
     }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateTransaction(@PathVariable Integer id, @RequestBody TransactionsDTO data) {
+        try {
+            TransactionsDTO updatedTransaction = transactionsService.updateTransaction(id, data);
+            return ResponseEntity.ok(updatedTransaction);
+        } catch (BadRequestNotFoundException exception) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ExceptionResponse(exception.getErrorCode(), exception.getMessage()));
+        }
+    }
 }

@@ -43,7 +43,7 @@ public class WalletsController {
         }
     }
 
-    @PutMapping("/edit/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<?> updateWallet(@PathVariable Integer id, @RequestBody WalletsDTO data) {
         try {
             WalletsDTO updatedWallet = walletsService.updateWallet(id, data.getName());

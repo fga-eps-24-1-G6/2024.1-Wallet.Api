@@ -100,4 +100,28 @@ public class TransactionsService {
                 .transactions(transactionsResponses)
                 .build();
     }
+
+    public TransactionsDTO updateTransaction(Integer id, TransactionsDTO data) {
+        Transactions transaction = transactionsRepository.findById(id)
+                .orElseThrow(() -> new BadRequestNotFoundException(404, "Transação não encontrada com o ID: " + id));
+
+        transaction.setWalletId(data.getWalletId());
+        transaction.setTicker(data.getTicker());
+        transaction.setPrice(data.getPrice());
+        transaction.setDate(data.getDate());
+        transaction.setAmount(data.getAmount());
+        transaction.setOperation(data.getOperation());
+
+        Transactions updatedTransaction = transactionsRepository.save(transaction);
+
+        return TransactionsDTO.builder()
+                .id(updatedTransaction.getId())
+                .walletId(updatedTransaction.getWalletId())
+                .ticker(updatedTransaction.getTicker())
+                .price(updatedTransaction.getPrice())
+                .date(updatedTransaction.getDate())
+                .amount(updatedTransaction.getAmount())
+                .operation(updatedTransaction.getOperation())
+                .build();
+    }
 }
