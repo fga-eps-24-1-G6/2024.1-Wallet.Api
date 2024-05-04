@@ -1,6 +1,6 @@
 package com.walletapi.service;
 
-import com.walletapi.dto.WalletsResponse;
+import com.walletapi.dto.WalletsDTO;
 import com.walletapi.exception.BadRequestNotFoundException;
 import com.walletapi.model.Wallets;
 import com.walletapi.repository.WalletsRepository;
@@ -16,13 +16,13 @@ public class WalletsService {
 
     private final WalletsRepository walletsRepository;
 
-    public WalletsResponse createWallet(String name) {
+    public WalletsDTO createWallet(String name) {
         try {
             Wallets savedWallet = walletsRepository.save(Wallets.builder()
                     .name(name)
                     .build());
 
-            return WalletsResponse.builder()
+            return WalletsDTO.builder()
                     .id(savedWallet.getId())
                     .name(savedWallet.getName())
                     .build();
@@ -31,34 +31,34 @@ public class WalletsService {
         }
     }
 
-    public List<WalletsResponse> getAllWallets() {
+    public List<WalletsDTO> getAllWallets() {
         List<Wallets> wallets = walletsRepository.findAll();
         return wallets.stream()
-                .map(wallet -> WalletsResponse.builder()
+                .map(wallet -> WalletsDTO.builder()
                         .id(wallet.getId())
                         .name(wallet.getName())
                         .build())
                 .collect(Collectors.toList());
     }
 
-    public WalletsResponse getWalletById(Integer id) {
+    public WalletsDTO getWalletById(Integer id) {
         Wallets wallet = walletsRepository.findById(id)
                 .orElseThrow(() -> new BadRequestNotFoundException(404, "Carteira não encontrada com o ID: " + id));
 
-        return WalletsResponse.builder()
+        return WalletsDTO.builder()
                 .id(wallet.getId())
                 .name(wallet.getName())
                 .build();
     }
 
-    public WalletsResponse updateWallet(Integer id, String name) {
+    public WalletsDTO updateWallet(Integer id, String name) {
         Wallets wallet = walletsRepository.findById(id)
                 .orElseThrow(() -> new BadRequestNotFoundException(404, "Carteira não encontrada com o ID: " + id));
 
         wallet.setName(name);
         Wallets updatedWallet = walletsRepository.save(wallet);
 
-        return WalletsResponse.builder()
+        return WalletsDTO.builder()
                 .id(updatedWallet.getId())
                 .name(updatedWallet.getName())
                 .build();

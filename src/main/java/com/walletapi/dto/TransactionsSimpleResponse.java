@@ -10,9 +10,8 @@ import java.util.Date;
 @Getter
 @AllArgsConstructor
 @Builder
-public class TransactionsResponse {
+public class TransactionsSimpleResponse {
     private Integer id;
-    private WalletsDTO wallets;
     private StocksDTO stocks;
     private BigDecimal price;
     private Date date;

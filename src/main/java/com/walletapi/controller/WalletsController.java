@@ -1,9 +1,8 @@
 package com.walletapi.controller;
 
 import com.walletapi.dto.ExceptionResponse;
-import com.walletapi.dto.WalletsResponse;
+import com.walletapi.dto.WalletsDTO;
 import com.walletapi.exception.BadRequestNotFoundException;
-import com.walletapi.model.Wallets;
 import com.walletapi.service.WalletsService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +19,7 @@ public class WalletsController {
     private final WalletsService walletsService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createWallet(@RequestBody final WalletsResponse data) {
+    public ResponseEntity<?> createWallet(@RequestBody final WalletsDTO data) {
         try {
             return ResponseEntity.ok(walletsService.createWallet(data.getName()));
         } catch (BadRequestNotFoundException exception) {
@@ -28,15 +27,15 @@ public class WalletsController {
         }
     }
     @GetMapping("/get")
-    public ResponseEntity<List<WalletsResponse>> getAllWallets() {
-        List<WalletsResponse> wallets = walletsService.getAllWallets();
+    public ResponseEntity<List<WalletsDTO>> getAllWallets() {
+        List<WalletsDTO> wallets = walletsService.getAllWallets();
         return ResponseEntity.ok(wallets);
     }
 
     @GetMapping("/get/{id}")
     public ResponseEntity<?> getWalletById(@PathVariable Integer id) {
         try {
-            WalletsResponse wallet = walletsService.getWalletById(id);
+            WalletsDTO wallet = walletsService.getWalletById(id);
             return ResponseEntity.ok(wallet);
         } catch (BadRequestNotFoundException exception) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -44,10 +43,10 @@ public class WalletsController {
         }
     }
 
-    @PutMapping("/edit/{id}")
-    public ResponseEntity<?> updateWallet(@PathVariable Integer id, @RequestBody WalletsResponse data) {
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateWallet(@PathVariable Integer id, @RequestBody WalletsDTO data) {
         try {
-            WalletsResponse updatedWallet = walletsService.updateWallet(id, data.getName());
+            WalletsDTO updatedWallet = walletsService.updateWallet(id, data.getName());
             return ResponseEntity.ok(updatedWallet);
         } catch (BadRequestNotFoundException exception) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
