@@ -1,9 +1,6 @@
 package com.walletapi.service;
 
-import com.walletapi.dto.StocksDTO;
-import com.walletapi.dto.TransactionsDTO;
-import com.walletapi.dto.TransactionsResponse;
-import com.walletapi.dto.WalletsDTO;
+import com.walletapi.dto.*;
 import com.walletapi.exception.BadRequestNotFoundException;
 import com.walletapi.model.Transactions;
 import com.walletapi.model.Wallets;
@@ -11,6 +8,8 @@ import com.walletapi.repository.TransactionsRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -68,6 +67,37 @@ public class TransactionsService {
                 .date(transaction.getDate())
                 .amount(transaction.getAmount())
                 .operation(transaction.getOperation())
+                .build();
+    }
+
+    public TransactionsWalletResponse getTransactionsByWalletId(Integer walletId) {
+        List<Transactions> transactions = transactionsRepository.getTransactionsByWalletId(walletId)
+                .orElseThrow(() -> new BadRequestNotFoundException(404, "Lançamentos não encontrados para o walletId: " + walletId));
+
+        // getWalletById
+        WalletsDTO wallet = walletsService.getWalletById(walletId);
+
+        List<TransactionsSimpleResponse> transactionsResponses = new ArrayList<>();
+
+        for (Transactions transaction : transactions) {
+            // getStocksByTicker
+            StocksDTO stocks = stocksService.getStocksByTicker(transaction.getTicker());
+
+            TransactionsSimpleResponse response = TransactionsSimpleResponse.builder()
+                    .id(transaction.getId())
+                    .stocks(stocks)
+                    .price(transaction.getPrice())
+                    .date(transaction.getDate())
+                    .amount(transaction.getAmount())
+                    .operation(transaction.getOperation())
+                    .build();
+
+            transactionsResponses.add(response);
+        }
+
+        return TransactionsWalletResponse.builder()
+                .wallet(wallet)
+                .transactions(transactionsResponses)
                 .build();
     }
 }
