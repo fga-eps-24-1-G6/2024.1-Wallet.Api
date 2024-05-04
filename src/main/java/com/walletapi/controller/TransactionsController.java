@@ -58,4 +58,15 @@ public class TransactionsController {
                     .body(new ExceptionResponse(exception.getErrorCode(), exception.getMessage()));
         }
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteTransaction(@PathVariable Integer id) {
+        try {
+            transactionsService.deleteTransaction(id);
+            return ResponseEntity.ok().build();
+        } catch (BadRequestNotFoundException exception) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ExceptionResponse(exception.getErrorCode(), exception.getMessage()));
+        }
+    }
 }

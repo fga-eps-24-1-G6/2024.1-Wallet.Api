@@ -124,4 +124,10 @@ public class TransactionsService {
                 .operation(updatedTransaction.getOperation())
                 .build();
     }
+
+    public void deleteTransaction(Integer id) {
+        Transactions transaction = transactionsRepository.findById(id)
+                .orElseThrow(() -> new BadRequestNotFoundException(404, "Transação não encontrada com o ID: " + id));
+        transactionsRepository.delete(transaction);
+    }
 }
