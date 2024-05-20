@@ -1,7 +1,21 @@
-FROM eclipse-temurin:17-jdk-alpine
+# Build
+FROM maven:3.8.4-openjdk-11 AS base
 
-VOLUME /tmp
+ENV HOME=/usr/app
+RUN mkdir -p $HOME
+WORKDIR $HOME
+# Add pom and install dependencies
+ADD pom.xml $HOME
+RUN mvn dependency:resolve
+ADD . $HOME
 
-COPY target/*.jar app.jar
+# Intermediate build
+FROM base as builder
+RUN mvn clean package -DskipTests
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+# Run
+FROM eclipse-temurin:11-jdk-alpine as runner
+
+COPY --from=builder /usr/app/target/*.jar wallet-api.jar
+
+ENTRYPOINT ["java", "-jar", "/wallet-api.jar"]
