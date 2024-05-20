@@ -19,4 +19,7 @@ public class Wallets {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "external_id", nullable = false)
+    private String externalId;
 }

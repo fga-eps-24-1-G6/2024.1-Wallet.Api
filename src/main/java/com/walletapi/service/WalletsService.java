@@ -16,15 +16,17 @@ public class WalletsService {
 
     private final WalletsRepository walletsRepository;
 
-    public WalletsDTO createWallet(String name) {
+    public WalletsDTO createWallet(String name, String externalId) {
         try {
             Wallets savedWallet = walletsRepository.save(Wallets.builder()
                     .name(name)
+                    .externalId(externalId)
                     .build());
 
             return WalletsDTO.builder()
                     .id(savedWallet.getId())
                     .name(savedWallet.getName())
+                    .externalId(savedWallet.getExternalId())
                     .build();
         } catch (Exception e) {
             throw new BadRequestNotFoundException(409, "Fail to create the wallet");
@@ -37,6 +39,7 @@ public class WalletsService {
                 .map(wallet -> WalletsDTO.builder()
                         .id(wallet.getId())
                         .name(wallet.getName())
+                        .externalId(wallet.getExternalId())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -48,19 +51,22 @@ public class WalletsService {
         return WalletsDTO.builder()
                 .id(wallet.getId())
                 .name(wallet.getName())
+                .externalId(wallet.getExternalId())
                 .build();
     }
 
-    public WalletsDTO updateWallet(Integer id, String name) {
+    public WalletsDTO updateWallet(Integer id, String name, String externalId) {
         Wallets wallet = walletsRepository.findById(id)
                 .orElseThrow(() -> new BadRequestNotFoundException(404, "Carteira não encontrada com o ID: " + id));
 
         wallet.setName(name);
+        wallet.setExternalId(externalId);
         Wallets updatedWallet = walletsRepository.save(wallet);
 
         return WalletsDTO.builder()
                 .id(updatedWallet.getId())
                 .name(updatedWallet.getName())
+                .externalId(updatedWallet.getExternalId())
                 .build();
     }
 

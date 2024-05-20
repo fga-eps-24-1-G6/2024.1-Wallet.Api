@@ -10,4 +10,5 @@ import lombok.Getter;
 public class WalletsDTO {
     private Integer id;
     private String name;
+    private String externalId;
 }
