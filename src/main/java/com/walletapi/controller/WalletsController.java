@@ -21,7 +21,7 @@ public class WalletsController {
     @PostMapping("/create")
     public ResponseEntity<?> createWallet(@RequestBody final WalletsDTO data) {
         try {
-            return ResponseEntity.ok(walletsService.createWallet(data.getName()));
+            return ResponseEntity.ok(walletsService.createWallet(data.getName(), data.getExternalId()));
         } catch (BadRequestNotFoundException exception) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionResponse(exception.getErrorCode(), exception.getMessage()));
         }
@@ -46,7 +46,7 @@ public class WalletsController {
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateWallet(@PathVariable Integer id, @RequestBody WalletsDTO data) {
         try {
-            WalletsDTO updatedWallet = walletsService.updateWallet(id, data.getName());
+            WalletsDTO updatedWallet = walletsService.updateWallet(id, data.getName(), data.getExternalId());
             return ResponseEntity.ok(updatedWallet);
         } catch (BadRequestNotFoundException exception) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
