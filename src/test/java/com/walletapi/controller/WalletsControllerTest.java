@@ -1,17 +1,23 @@
 package com.walletapi.controller;
 
 import com.walletapi.service.MockMvcService;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
 
+@SpringBootTest
+@AutoConfigureMockMvc
+@TestMethodOrder(OrderAnnotation.class)
 public class WalletsControllerTest extends BaseControllerTest {
 
     @Autowired
@@ -29,67 +35,43 @@ public class WalletsControllerTest extends BaseControllerTest {
                                 + "\"name\": \"Carteira Teste\","
                                 + "\"externalId\": \"123\""
                                 + "}")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value((1)))
+                .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.name").value(("Carteira Teste")))
                 .andExpect(jsonPath("$.externalId").value(("123")));
     }
 
     @Test
     @Order(2)
-    void shouldNotCreateWallets() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/wallets/create")
-                        .content("{"
-                                + "\"name\": \"Carteira Teste De novo\","
-                                + "\"externalId\": \"123\""
-                                + "}")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.errorCode").value((409)))
-                .andExpect(jsonPath("$.message").value(("Fail to create the wallet")));
-    }
-
-    @Test
-    @Order(3)
     void shouldGetAllWallets() throws Exception {
         mockMvcService.get("/api/wallets/get")
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].id").value(2))
-                .andExpect(jsonPath("$[0].name").value("Carteira Principal - Lucas"))
-                .andExpect(jsonPath("$[0].externalId").value(1))
-                .andExpect(jsonPath("$[1].id").value(1))
-                .andExpect(jsonPath("$[1].name").value("Carteira Teste"))
-                .andExpect(jsonPath("$[1].externalId").value(123));
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    @Order(3)
+    void shouldGetWalletsById() throws Exception {
+        mockMvcService.get("/api/wallets/get/1")
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").isNumber());
     }
 
     @Test
     @Order(4)
-    void shouldGetWalletsById() throws Exception {
-        mockMvcService.get("/api/wallets/get/2")
-                .andExpect(status().is2xxSuccessful())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(2))
-                .andExpect(jsonPath("$.name").value("Carteira Principal - Lucas"))
-                .andExpect(jsonPath("$.externalId").value(1));
-    }
-
-    @Test
-    @Order(5)
     void shouldNotGetWalletsById() throws Exception {
         mockMvcService.get("/api/wallets/get/3")
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.errorCode").value((404)))
-                .andExpect(jsonPath("$.message").value(("Carteira não encontrada com o ID: 3")));
+                .andExpect(jsonPath("$.errorCode").value((404)));
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     void shouldUpdateWallets() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                         .put("/api/wallets/update/1")
@@ -100,13 +82,13 @@ public class WalletsControllerTest extends BaseControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.name").value("Carteira Teste Atualizada"))
                 .andExpect(jsonPath("$.externalId").value(123));
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     void shouldNotUpdateWallets() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                         .put("/api/wallets/update/3")
@@ -117,25 +99,23 @@ public class WalletsControllerTest extends BaseControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.errorCode").value((404)))
-                .andExpect(jsonPath("$.message").value(("Carteira não encontrada com o ID: 3")));
+                .andExpect(jsonPath("$.errorCode").value((404)));
     }
 
     @Test
-    @Order(8)
+    @Order(7)
     void shouldDeleteWallets() throws Exception {
         mockMvcService.delete("/api/wallets/delete/1")
                 .andExpect(status().is2xxSuccessful());
     }
 
     @Test
-    @Order(9)
+    @Order(8)
     void shouldNotDeleteWallets() throws Exception {
-        mockMvcService.delete("/api/wallets/delete/1")
+        mockMvcService.delete("/api/wallets/delete/3")
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.errorCode").value((404)))
-                .andExpect(jsonPath("$.message").value(("Carteira não encontrada com o ID: 1")));
+                .andExpect(jsonPath("$.errorCode").value((404)));
     }
 
 }

@@ -1,187 +1,149 @@
-create table companies
+CREATE TABLE companies
 (
-    id               serial
-        primary key,
-    name             varchar(256) not null,
-    cnpj             varchar(20),
-    ipo              integer,
-    foundation_year  integer,
-    firm_value       bigint,
-    number_of_papers bigint,
-    market_segment   varchar(256),
-    sector           varchar(256),
-    segment          varchar(256),
-    external_id      varchar(256)
+    id               SERIAL PRIMARY KEY,
+    name             VARCHAR(256) NOT NULL,
+    cnpj             VARCHAR(20),
+    ipo              INTEGER,
+    foundation_year  INTEGER,
+    firm_value       BIGINT,
+    number_of_papers BIGINT,
+    market_segment   VARCHAR(256),
+    sector           VARCHAR(256),
+    segment          VARCHAR(256),
+    external_id      VARCHAR(256)
 );
 
-create table balance_sheets
+CREATE TABLE balance_sheets
 (
-    company_id   serial
-        constraint balance_sheets_company_id_companies_id_fk
-            references companies,
-    year         integer not null,
-    quarter      integer not null,
-    net_revenue  bigint,
-    costs        bigint,
-    gross_profit bigint,
-    net_profit   bigint,
-    ebitda       bigint,
-    ebit         bigint,
-    taxes        bigint,
-    gross_debt   bigint,
-    net_debt     bigint,
-    equity       bigint,
-    cash         bigint,
-    assets       bigint,
-    liabilities  bigint,
-    id           serial
+    id              SERIAL PRIMARY KEY,
+    company_id      INTEGER NOT NULL
+        CONSTRAINT balance_sheets_company_id_companies_id_fk REFERENCES companies(id),
+    year            INTEGER NOT NULL,
+    quarter         INTEGER NOT NULL,
+    net_revenue     BIGINT,
+    costs           BIGINT,
+    gross_profit    BIGINT,
+    net_profit      BIGINT,
+    ebitda          BIGINT,
+    ebit            BIGINT,
+    taxes           BIGINT,
+    gross_debt      BIGINT,
+    net_debt        BIGINT,
+    equity          BIGINT,
+    cash            BIGINT,
+    assets          BIGINT,
+    liabilities     BIGINT
 );
 
-create index balance_sheets_company_idx
-    on balance_sheets (company_id);
+CREATE INDEX balance_sheets_company_idx
+    ON balance_sheets (company_id);
 
-create index balance_sheets_year_idx
-    on balance_sheets (year);
+CREATE INDEX balance_sheets_year_idx
+    ON balance_sheets (year);
 
-create table stocks
+CREATE TABLE stocks
 (
-    id                  serial
-        primary key,
-    external_id         varchar(256),
-    ticker              varchar(7) not null,
-    company_id          serial
-        constraint stocks_company_id_companies_id_fk
-            references companies,
-    free_float          numeric,
-    tag_along           numeric,
-    avg_daily_liquidity bigint
+    id                  SERIAL PRIMARY KEY,
+    external_id         VARCHAR(256),
+    ticker              VARCHAR(7) NOT NULL,
+    company_id          INTEGER NOT NULL
+        CONSTRAINT stocks_company_id_companies_id_fk REFERENCES companies(id),
+    free_float          NUMERIC,
+    tag_along           NUMERIC,
+    avg_daily_liquidity BIGINT
 );
 
-create table dividends
+CREATE TABLE dividends
 (
-    stock_id       serial
-        constraint dividends_stock_id_stocks_id_fk
-            references stocks,
-    type           varchar(100) default 'Dividendo'::character varying not null,
-    value          numeric                                             not null,
-    ownership_date date                                                not null,
-    payment_date   date                                                not null,
-    id             serial
+    id             SERIAL PRIMARY KEY,
+    stock_id       INTEGER NOT NULL
+        CONSTRAINT dividends_stock_id_stocks_id_fk REFERENCES stocks(id),
+    type           VARCHAR(100) DEFAULT 'Dividendo' NOT NULL,
+    value          NUMERIC NOT NULL,
+    ownership_date DATE NOT NULL,
+    payment_date   DATE NOT NULL
 );
 
-create index dividends_stock_idx
-    on dividends (stock_id);
+CREATE INDEX dividends_stock_idx
+    ON dividends (stock_id);
 
-create table prices
+CREATE TABLE prices
 (
-    stock_id   serial
-        constraint prices_stock_id_stocks_id_fk
-            references stocks,
-    value      numeric not null,
-    price_date date    not null,
-    id         serial
-        primary key
+    id         SERIAL PRIMARY KEY,
+    stock_id   INTEGER NOT NULL
+        CONSTRAINT prices_stock_id_stocks_id_fk REFERENCES stocks(id),
+    value      NUMERIC NOT NULL,
+    price_date DATE NOT NULL
 );
 
-create index prices_stock_idx
-    on prices (stock_id);
+CREATE INDEX prices_stock_idx
+    ON prices (stock_id);
 
-create table wallets
+CREATE TABLE wallets
 (
-    id          serial
-        primary key,
-    external_id varchar(256) not null,
-    name        varchar(256) not null
+    id          SERIAL PRIMARY KEY,
+    external_id VARCHAR(256) NOT NULL,
+    name        VARCHAR(256) NOT NULL
 );
 
 ALTER TABLE stocks ADD CONSTRAINT unique_ticker UNIQUE (ticker);
 
-create table transactions
+CREATE TABLE transactions
 (
-    id        serial
-        primary key,
-    wallet_id serial
-        constraint transactions_wallet_id_wallets_id_fk
-            references wallets,
-    ticker    varchar     not null
-        constraint transactions_ticker_stocks_ticker_fk
-            references stocks (ticker),
-    operation varchar(10) not null,
-    amount    integer     not null,
-    price     numeric     not null,
-    date      date        not null
+    id         SERIAL PRIMARY KEY,
+    wallet_id  INTEGER NOT NULL
+        CONSTRAINT transactions_wallet_id_wallets_id_fk REFERENCES wallets(id),
+    ticker     VARCHAR(7) NOT NULL
+        CONSTRAINT transactions_ticker_stocks_ticker_fk REFERENCES stocks(ticker),
+    operation  VARCHAR(10) NOT NULL,
+    amount     INTEGER NOT NULL,
+    price      NUMERIC NOT NULL,
+    date       DATE NOT NULL,
+    CONSTRAINT transactions_unique_id_wallet_id UNIQUE (id, wallet_id)
 );
 
-create index transactions_wallet_idx
-    on transactions (wallet_id);
+CREATE INDEX transactions_wallet_idx
+    ON transactions (wallet_id);
 
-INSERT INTO public.companies (id, name, cnpj, ipo, foundation_year, firm_value, number_of_papers, market_segment,
-                              sector, segment, external_id)
-VALUES (1, 'PETROLEO BRASILEIRO S.A. PETROBRAS', '33000167000101', 1977, 1953, 754871726000, 13044496000, 'Nível 2',
-        'Empresas do Setor Petróleo, Gás e Biocombustíveis', 'Empresas do Segmento Exploração  Refino e Distribuição',
-        null);
+INSERT INTO companies
+    (name, cnpj, ipo, foundation_year, firm_value, number_of_papers, market_segment, sector, segment, external_id)
+VALUES
+    ('PETROLEO BRASILEIRO S.A. PETROBRAS', '33000167000101', 1977, 1953, 754871726000, 13044496000, 'Nível 2',
+    'Empresas do Setor Petróleo, Gás e Biocombustíveis', 'Empresas do Segmento Exploração  Refino e Distribuição', null);
 
-INSERT INTO public.stocks (id, external_id, ticker, company_id, free_float, tag_along, avg_daily_liquidity)
-VALUES (4, null, 'petr4', 1, 63.33, 100, 1617781000);
+INSERT INTO stocks
+    (external_id, ticker, company_id, free_float, tag_along, avg_daily_liquidity)
+VALUES
+    (null, 'petr4', 1, 63.33, 100, 1617781000);
 
-INSERT INTO public.dividends (stock_id, type, value, ownership_date, payment_date, id)
-VALUES (4, 'Dividendos', 0.54947422, '2024-04-25', CURRENT_DATE, 1);
+INSERT INTO dividends
+    (stock_id, type, value, ownership_date, payment_date)
+VALUES
+    (1, 'Dividendos', 0.54947422, '2024-04-25', CURRENT_DATE);
 
-INSERT INTO public.prices (stock_id, value, price_date, id)
-VALUES (4, 34.87, '2024-04-23', 2);
+INSERT INTO prices
+    (stock_id, value, price_date)
+VALUES
+    (1, 34.87, '2024-04-23'),
+    (1, 32.45, '2024-03-24'),
+    (1, 30.96, '2024-03-25'),
+    (1, 27.5, '2023-04-25'),
+    (1, 35.96, '2024-04-24'),
+    (1, 36.02, '2024-04-24'),
+    (1, 27.96, '2023-04-24');
 
-INSERT INTO public.prices (stock_id, value, price_date, id)
-VALUES (4, 32.45, '2024-03-24', 5);
+INSERT INTO balance_sheets
+    (company_id, year, quarter, net_revenue, costs, gross_profit, net_profit, ebitda, ebit, taxes, gross_debt, net_debt, equity, cash, assets, liabilities)
+VALUES
+    (1, 2023, 1, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000, 303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000),
+    (1, 2023, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000, 303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000),
+    (1, 2018, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000, 303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000),
+    (1, 2017, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000, 303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000),
+    (1, 2019, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000, 303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000),
+    (1, 2020, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000, 303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000),
+     (1, 2021, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000, 303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000);
 
-INSERT INTO public.prices (stock_id, value, price_date, id)
-VALUES (4, 30.96, '2024-03-25', 6);
-
-INSERT INTO public.prices (stock_id, value, price_date, id)
-VALUES (4, 27.5, '2023-04-25', 7);
-
-INSERT INTO public.prices (stock_id, value, price_date, id)
-VALUES (4, 35.96, '2024-04-24', 3);
-
-INSERT INTO public.prices (stock_id, value, price_date, id)
-VALUES (4, 36.02, '2024-04-24', 4);
-
-INSERT INTO public.prices (stock_id, value, price_date, id)
-VALUES (4, 27.96, '2023-04-24', 8);
-
-INSERT INTO public.balance_sheets (company_id, year, quarter, net_revenue, costs, gross_profit, net_profit, ebitda,
-                                   ebit, taxes, gross_debt, net_debt, equity, cash, assets, liabilities, id)
-VALUES (1, 2023, 1, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000,
-        303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000, 1);
-
-INSERT INTO public.balance_sheets (company_id, year, quarter, net_revenue, costs, gross_profit, net_profit, ebitda,
-                                   ebit, taxes, gross_debt, net_debt, equity, cash, assets, liabilities, id)
-VALUES (1, 2023, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000,
-        303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000, 2);
-
-INSERT INTO public.balance_sheets (company_id, year, quarter, net_revenue, costs, gross_profit, net_profit, ebitda,
-                                   ebit, taxes, gross_debt, net_debt, equity, cash, assets, liabilities, id)
-VALUES (1, 2018, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000,
-        303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000, 2);
-
-INSERT INTO public.balance_sheets (company_id, year, quarter, net_revenue, costs, gross_profit, net_profit, ebitda,
-                                   ebit, taxes, gross_debt, net_debt, equity, cash, assets, liabilities, id)
-VALUES (1, 2017, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000,
-        303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000, 2);
-
-INSERT INTO public.balance_sheets (company_id, year, quarter, net_revenue, costs, gross_profit, net_profit, ebitda,
-                                   ebit, taxes, gross_debt, net_debt, equity, cash, assets, liabilities, id)
-VALUES (1, 2019, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000,
-        303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000, 2);
-
-INSERT INTO public.balance_sheets (company_id, year, quarter, net_revenue, costs, gross_profit, net_profit, ebitda,
-                                   ebit, taxes, gross_debt, net_debt, equity, cash, assets, liabilities, id)
-VALUES (1, 2020, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000,
-        303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000, 2);
-
-INSERT INTO public.balance_sheets (company_id, year, quarter, net_revenue, costs, gross_profit, net_profit, ebitda,
-                                   ebit, taxes, gross_debt, net_debt, equity, cash, assets, liabilities, id)
-VALUES (1, 2021, 4, 511994000000, -242061000000, 269933000000, 125166000000, 255546000000, 189342000000, -52315000000,
-        303062000000, 227799000000, 382340000000, 75263000000, 1050888000000, 1050888000000, 2);
-
-INSERT INTO public.wallets (id, external_id, name)
-VALUES (2, '1', 'Carteira Principal - Lucas');
+ INSERT INTO wallets
+     (external_id, name)
+ VALUES
+     ('1', 'Carteira Principal - Lucas');
