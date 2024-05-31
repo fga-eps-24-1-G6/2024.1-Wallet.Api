@@ -2,15 +2,23 @@ package com.walletapi.service;
 
 import com.walletapi.dto.*;
 import com.walletapi.exception.BadRequestNotFoundException;
+import com.walletapi.model.Prices;
 import com.walletapi.model.Transactions;
-import com.walletapi.model.Wallets;
+import com.walletapi.repository.PriceRepository;
 import com.walletapi.repository.TransactionsRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -19,6 +27,7 @@ public class TransactionsService {
     private final TransactionsRepository transactionsRepository;
     private final StocksService stocksService;
     private final WalletsService walletsService;
+    private final PriceRepository priceRepository;
 
     public TransactionsResponse createTransaction(TransactionsDTO data) {
         try {
@@ -130,4 +139,94 @@ public class TransactionsService {
                 .orElseThrow(() -> new BadRequestNotFoundException(404, "Transação não encontrada com o ID: " + id));
         transactionsRepository.delete(transaction);
     }
+
+    public List<ProfitabilityDTO> getProfitabilityByWalletId(Integer walletId) {
+        // Obtendo todas as transações para a carteira fornecida
+        List<Transactions> allTransactions = transactionsRepository.getTransactionsByWalletId(walletId)
+                .orElseThrow(() -> new BadRequestNotFoundException(404, "Lançamentos não encontrados para o walletId: " + walletId));
+
+        // Coletando todos os tickers únicos presentes nas transações
+        Set<String> uniqueTickers = allTransactions.stream()
+                .map(Transactions::getTicker)
+                .collect(Collectors.toSet());
+
+        // Buscando todas as ações relacionadas aos tickers únicos
+        List<StocksDTO> stocks = uniqueTickers.stream()
+                .map(stocksService::getStocksByTicker)
+                .collect(Collectors.toList());
+
+        // Agrupando transações por mês
+        Map<String, List<Transactions>> transactionsByMonth = allTransactions.stream()
+                .collect(Collectors.groupingBy(transaction -> {
+                    LocalDate date = transaction.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    return date.getYear() + "-" + String.format("%02d", date.getMonthValue());
+                }));
+
+        List<ProfitabilityDTO> profitabilityList = new ArrayList<>();
+        BigDecimal cumulativeApplied = BigDecimal.ZERO;
+        BigDecimal cumulativeGains = BigDecimal.ZERO;
+
+        for (Map.Entry<String, List<Transactions>> entry : transactionsByMonth.entrySet()) {
+            String month = entry.getKey();
+            List<Transactions> transactionsInMonth = entry.getValue();
+
+            // Calculando o total aplicado (somente compras) no mês atual
+            BigDecimal sumApplied = transactionsInMonth.stream()
+                    .filter(transaction -> "COMPRA".equalsIgnoreCase(transaction.getOperation()))
+                    .map(transaction -> transaction.getPrice().multiply(BigDecimal.valueOf(transaction.getAmount())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Calculando os ganhos (somente vendas) no mês atual
+            BigDecimal sumGains = transactionsInMonth.stream()
+                    .filter(transaction -> "VENDA".equalsIgnoreCase(transaction.getOperation()))
+                    .map(transaction -> transaction.getPrice().multiply(BigDecimal.valueOf(transaction.getAmount())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            cumulativeApplied = cumulativeApplied.add(sumApplied);
+            cumulativeGains = cumulativeGains.add(sumGains);
+
+            BigDecimal currentValuation = BigDecimal.ZERO;
+            for (String ticker : uniqueTickers) {
+                StocksDTO stock = stocks.stream()
+                        .filter(s -> s.getTicker().equals(ticker))
+                        .findFirst()
+                        .orElse(null);
+
+                if (stock != null) {
+                    // Obter o último preço do mês de cada ação
+                    List<Prices> prices = priceRepository.findAllByStockIdIdOrderByPriceDateDesc(stock.getId());
+
+                    BigDecimal lastPriceOfMonth = prices.stream()
+                            .filter(price -> isLastDayOfMonth(price.getPriceDate()))
+                            .map(Prices::getValue)
+                            .reduce((first, second) -> second) // Obtendo o último preço do mês
+                            .orElse(BigDecimal.ZERO);
+
+                    long totalAmount = allTransactions.stream()
+                            .filter(transaction -> transaction.getTicker().equals(ticker))
+                            .filter(transaction -> "COMPRA".equalsIgnoreCase(transaction.getOperation()))
+                            .mapToLong(Transactions::getAmount)
+                            .sum();
+
+                    currentValuation = currentValuation.add(lastPriceOfMonth.multiply(BigDecimal.valueOf(totalAmount)));
+                }
+            }
+
+            BigDecimal sumTotal = cumulativeApplied.add(cumulativeGains).add(currentValuation);
+
+            BigDecimal profitability = BigDecimal.ZERO;
+            if (!cumulativeApplied.equals(BigDecimal.ZERO)) {
+                profitability = cumulativeGains.subtract(cumulativeApplied).divide(cumulativeApplied, 2, RoundingMode.HALF_UP);
+            }
+
+            profitabilityList.add(new ProfitabilityDTO(month, cumulativeApplied, cumulativeGains, sumTotal, profitability));
+        }
+
+        return profitabilityList;
+    }
+
+    private boolean isLastDayOfMonth(LocalDate date) {
+        return date.equals(date.withDayOfMonth(date.lengthOfMonth()));
+    }
+
 }

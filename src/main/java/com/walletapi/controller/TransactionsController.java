@@ -69,4 +69,16 @@ public class TransactionsController {
                     .body(new ExceptionResponse(exception.getErrorCode(), exception.getMessage()));
         }
     }
+
+    @GetMapping("/get/profitability/{walletId}")
+    public ResponseEntity<?> getProfitabilityByWalletId(@PathVariable Integer walletId) {
+        try {
+            List<ProfitabilityDTO> profitabilityWalletResponse = transactionsService.getProfitabilityByWalletId(walletId);
+            return ResponseEntity.ok(profitabilityWalletResponse);
+        } catch (BadRequestNotFoundException exception) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ExceptionResponse(exception.getErrorCode(), exception.getMessage()));
+        }
+    }
+
 }

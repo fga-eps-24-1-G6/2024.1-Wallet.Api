@@ -10,6 +10,7 @@ import java.math.BigInteger;
 @NoArgsConstructor
 @Setter
 public class StocksDTO {
+    private Integer id;
     private String ticker;
     private BigDecimal currentPrice;
     private String companyName;
@@ -20,4 +21,17 @@ public class StocksDTO {
     private BigDecimal variationOneDay;
     private BigDecimal variationOneMonth;
     private BigDecimal variationTwelveMonths;
+
+    public StocksDTO(String ticker, BigDecimal currentPrice, String companyName, BigDecimal freeFloat, BigDecimal tagAlong, BigInteger avgDailyLiquidity, String categorie, BigDecimal variationOneDay, BigDecimal variationOneMonth, BigDecimal variationTwelveMonths) {
+        this.avgDailyLiquidity = avgDailyLiquidity;
+        this.ticker = ticker;
+        this.currentPrice = currentPrice;
+        this.companyName = companyName;
+        this.freeFloat = freeFloat;
+        this.tagAlong = tagAlong;
+        this.variationOneDay = variationOneDay;
+        this.variationOneMonth = variationOneMonth;
+        this.variationTwelveMonths = variationTwelveMonths;
+        this.categorie = categorie;
+    }
 }

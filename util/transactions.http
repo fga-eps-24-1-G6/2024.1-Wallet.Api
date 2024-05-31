@@ -1,0 +1,2 @@
+### Transactions - Get Profitability by Id
+GET {{server}}/api/transactions/get/profitability/2
