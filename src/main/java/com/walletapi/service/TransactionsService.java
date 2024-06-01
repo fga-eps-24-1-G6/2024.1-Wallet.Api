@@ -32,13 +32,13 @@ public class TransactionsService {
                     .build());
 
             // getWalletById
-            WalletsDTO wallets = walletsService.getWalletById(data.getWalletId());
+            GetWalletDTO wallet = walletsService.getWalletById(data.getWalletId());
             // getStocksByTicker
             StocksDTO stocks = stocksService.getStocksByTicker(data.getTicker());
 
             return TransactionsResponse.builder()
                     .id(savedTransaction.getId())
-                    .wallets(wallets)
+                    .wallets(wallet)
                     .stocks(stocks)
                     .price(savedTransaction.getPrice())
                     .date(savedTransaction.getDate())
@@ -55,13 +55,13 @@ public class TransactionsService {
                 .orElseThrow(() -> new BadRequestNotFoundException(404, "Lançamento não encontrado com o ID: " + id));
 
         // getWalletById
-        WalletsDTO wallets = walletsService.getWalletById(transaction.getWalletId());
+        GetWalletDTO wallet = walletsService.getWalletById(transaction.getWalletId());
         // getStocksByTicker
         StocksDTO stocks = stocksService.getStocksByTicker(transaction.getTicker());
 
         return TransactionsResponse.builder()
                 .id(transaction.getId())
-                .wallets(wallets)
+                .wallets(wallet)
                 .stocks(stocks)
                 .price(transaction.getPrice())
                 .date(transaction.getDate())
@@ -75,7 +75,7 @@ public class TransactionsService {
                 .orElseThrow(() -> new BadRequestNotFoundException(404, "Lançamentos não encontrados para o walletId: " + walletId));
 
         // getWalletById
-        WalletsDTO wallet = walletsService.getWalletById(walletId);
+        GetWalletDTO wallet = walletsService.getWalletById(walletId);
 
         List<TransactionsSimpleResponse> transactionsResponses = new ArrayList<>();
 
