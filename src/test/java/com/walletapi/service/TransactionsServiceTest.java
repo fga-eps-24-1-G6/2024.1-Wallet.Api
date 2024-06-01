@@ -14,9 +14,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,14 +48,13 @@ public class TransactionsServiceTest {
         Transactions transaction = new Transactions(1, 1, "ABEV3", BigDecimal.valueOf(12.51), date, 10, "COMPRA");
 
         when(transactionsRepository.save(any(Transactions.class))).thenReturn(transaction);
-        when(walletsService.getWalletById(anyInt())).thenReturn(new WalletsDTO(1, "Wallet 1", "123"));
+        when(walletsService.getWalletById(anyInt())).thenReturn(new GetWalletDTO("Wallet 1", "123", Collections.emptyList(), BigDecimal.ZERO, BigDecimal.ZERO));
         when(stocksService.getStocksByTicker(anyString())).thenReturn(new StocksDTO("ABEV3", BigDecimal.valueOf(12.37), "AMBEV", BigDecimal.valueOf(27.89), BigDecimal.valueOf(80.0), BigInteger.valueOf(326266000), "SMALL", BigDecimal.valueOf(0.3), BigDecimal.valueOf(3.0), BigDecimal.valueOf(-12.37)));
 
         TransactionsResponse response = transactionsService.createTransaction(transactionDTO);
 
         assertEquals(transaction.getId(), response.getId());
         assertEquals(transaction.getTicker(), response.getStocks().getTicker());
-        assertEquals(transaction.getWalletId(), response.getWallets().getId());
     }
 
     @Test
@@ -67,14 +64,13 @@ public class TransactionsServiceTest {
         Transactions transaction = new Transactions(1, 1, "ABEV3", BigDecimal.valueOf(12.51), date, 10, "COMPRA");
 
         when(transactionsRepository.findById(1)).thenReturn(Optional.of(transaction));
-        when(walletsService.getWalletById(anyInt())).thenReturn(new WalletsDTO(1, "Wallet 1", "123"));
+        when(walletsService.getWalletById(anyInt())).thenReturn(new GetWalletDTO("Wallet 1", "123", Collections.emptyList(), BigDecimal.ZERO, BigDecimal.ZERO));
         when(stocksService.getStocksByTicker(anyString())).thenReturn(new StocksDTO("ABEV3", BigDecimal.valueOf(12.37), "AMBEV", BigDecimal.valueOf(27.89), BigDecimal.valueOf(80.0), BigInteger.valueOf(326266000), "SMALL", BigDecimal.valueOf(0.3), BigDecimal.valueOf(3.0), BigDecimal.valueOf(-12.37)));
 
         TransactionsResponse response = transactionsService.getTransactionById(1);
 
         assertEquals(transaction.getId(), response.getId());
         assertEquals(transaction.getTicker(), response.getStocks().getTicker());
-        assertEquals(transaction.getWalletId(), response.getWallets().getId());
     }
 
     @Test
@@ -96,14 +92,13 @@ public class TransactionsServiceTest {
         Transactions transaction2 = new Transactions(2, 1, "ITSA4", BigDecimal.valueOf(12.51), date, 10, "COMPRA");
 
         when(transactionsRepository.getTransactionsByWalletId(1)).thenReturn(Optional.of(Arrays.asList(transaction1, transaction2)));
-        when(walletsService.getWalletById(1)).thenReturn(new WalletsDTO(1, "Wallet 1", "123"));
+        when(walletsService.getWalletById(anyInt())).thenReturn(new GetWalletDTO("Wallet 1", "123", Collections.emptyList(), BigDecimal.ZERO, BigDecimal.ZERO));
         when(stocksService.getStocksByTicker(anyString()))
                 .thenReturn(new StocksDTO("ABEV3", BigDecimal.valueOf(12.37), "AMBEV", BigDecimal.valueOf(27.89), BigDecimal.valueOf(80.0), BigInteger.valueOf(326266000), "SMALL", BigDecimal.valueOf(0.3), BigDecimal.valueOf(3.0), BigDecimal.valueOf(-12.37)))
                 .thenReturn(new StocksDTO("ITSA4", BigDecimal.valueOf(12.37), "ITSA4", BigDecimal.valueOf(27.89), BigDecimal.valueOf(80.0), BigInteger.valueOf(326266000), "SMALL", BigDecimal.valueOf(0.3), BigDecimal.valueOf(3.0), BigDecimal.valueOf(-12.37)));
 
         TransactionsWalletResponse response = transactionsService.getTransactionsByWalletId(1);
 
-        assertEquals(1, response.getWallet().getId());
         assertEquals(2, response.getTransactions().size());
     }
 
