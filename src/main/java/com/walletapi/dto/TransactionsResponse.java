@@ -12,7 +12,7 @@ import java.util.Date;
 @Builder
 public class TransactionsResponse {
     private Integer id;
-    private WalletsDTO wallets;
+    private GetWalletDTO wallets;
     private StocksDTO stocks;
     private BigDecimal price;
     private Date date;

@@ -10,6 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class TransactionsWalletResponse {
-    private WalletsDTO wallet;
+    private GetWalletDTO wallet;
     private List<TransactionsSimpleResponse> transactions;
 }

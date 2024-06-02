@@ -57,14 +57,13 @@ public class WalletsControllerTest extends BaseControllerTest {
     void shouldGetWalletsById() throws Exception {
         mockMvcService.get("/api/wallets/get/1")
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").isNumber());
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
     @Order(4)
     void shouldNotGetWalletsById() throws Exception {
-        mockMvcService.get("/api/wallets/get/3")
+        mockMvcService.get("/api/wallets/get/5")
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.errorCode").value((404)));
@@ -76,15 +75,12 @@ public class WalletsControllerTest extends BaseControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .put("/api/wallets/update/1")
                         .content("{"
-                                + "\"name\": \"Carteira Teste Atualizada\","
-                                + "\"externalId\": \"123\""
+                                + "\"name\": \"Carteira Teste Atualizada\""
                                 + "}")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.name").value("Carteira Teste Atualizada"))
-                .andExpect(jsonPath("$.externalId").value(123));
+                .andExpect(jsonPath("$.name").value("Carteira Teste Atualizada"));
     }
 
     @Test
