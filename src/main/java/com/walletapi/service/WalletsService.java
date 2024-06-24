@@ -1,5 +1,7 @@
 package com.walletapi.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.walletapi.dto.CreateWalletDTO;
 import com.walletapi.dto.GetWalletDTO;
 import com.walletapi.dto.GetWalletsDTO;
@@ -11,6 +13,13 @@ import com.walletapi.model.Wallets;
 import com.walletapi.repository.TransactionsRepository;
 import com.walletapi.repository.WalletsRepository;
 import lombok.AllArgsConstructor;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -31,17 +40,56 @@ public class WalletsService {
     private final StocksService stocksService;
 
     public CreateWalletDTO createWallet(String name, String externalId) {
-        try {
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            HttpGet keyGenRequest = new HttpGet("https://5a7udyuiimjx3rngjs7lp4dxee0phmbl.lambda-url.us-east-1.on.aws/rsa/keygen?encrypt=true");
+            keyGenRequest.addHeader("accept", "application/json");
+            CloseableHttpResponse keyGenResponse = client.execute(keyGenRequest);
+            String keyGenResponseBody = EntityUtils.toString(keyGenResponse.getEntity());
+            JsonNode keyGenJson = objectMapper.readTree(keyGenResponseBody);
+            String publicKey = keyGenJson.get("public_key").asText();
+            List<String> encryptedKeys = new ArrayList<>();
+            JsonNode privateEncryptedKey = keyGenJson.get("private_encrypted_key");
+            for (JsonNode keyNode : privateEncryptedKey) {
+                encryptedKeys.add(keyNode.asText());
+            }
+
+            HttpPost encryptRequest = new HttpPost("https://5a7udyuiimjx3rngjs7lp4dxee0phmbl.lambda-url.us-east-1.on.aws/rsa/encrypt");
+            encryptRequest.addHeader("accept", "application/json");
+            encryptRequest.addHeader("Content-Type", "application/json");
+            String encryptPayload = "{\"message\": \"" + name + "\", \"public_key\": \"" + publicKey + "\"}";
+            encryptRequest.setEntity(new StringEntity(encryptPayload));
+            CloseableHttpResponse encryptResponse = client.execute(encryptRequest);
+            String encryptResponseBody = EntityUtils.toString(encryptResponse.getEntity());
+            JsonNode encryptJson = objectMapper.readTree(encryptResponseBody);
+            String encryptedName = encryptJson.get("encrypted_message").asText();
+
             Wallets savedWallet = walletsRepository.save(Wallets.builder()
                     .name(name)
                     .externalId(externalId)
                     .build());
 
-            return CreateWalletDTO.builder()
+            HttpPost decryptRequest = new HttpPost("https://5a7udyuiimjx3rngjs7lp4dxee0phmbl.lambda-url.us-east-1.on.aws/rsa/decrypt");
+            decryptRequest.addHeader("accept", "application/json");
+            decryptRequest.addHeader("Content-Type", "application/json");
+            String decryptPayload = objectMapper.writeValueAsString(new HashMap<String, Object>() {{
+                put("message", encryptedName);
+                put("private_key", encryptedKeys);
+            }});
+            decryptRequest.setEntity(new StringEntity(decryptPayload));
+            CloseableHttpResponse decryptResponse = client.execute(decryptRequest);
+            String decryptResponseBody = EntityUtils.toString(decryptResponse.getEntity());
+            JsonNode decryptJson = objectMapper.readTree(decryptResponseBody);
+            String decryptedName = decryptJson.get("decrypted_message").asText();
+
+            CreateWalletDTO createWalletDTO = CreateWalletDTO.builder()
                     .id(savedWallet.getId())
-                    .name(savedWallet.getName())
+                    .name(decryptedName)
                     .externalId(savedWallet.getExternalId())
                     .build();
+
+            return createWalletDTO;
         } catch (Exception e) {
             throw new BadRequestNotFoundException(409, "Fail to create the wallet");
         }
